@@ -1,13 +1,13 @@
 #region COMPANY VARIABLES
 
 # IP to AD-Server
-$adip = "192.168.1.206"
+$adip = "LAB-DC01"
 
 # Domain 
-$company = "test.local"
+$company = "lab.local"
 
 # The OU where the users are
-$ou = "OU=Users,OU=test,DC=test,DC=local"
+$ou = "OU=Users,OU=LAB,DC=lab,DC=local"
 
 #$credentials = Get-Credential
 #endregion
@@ -31,22 +31,36 @@ while ($name.Split(" ").Length -ne 2) {
 $firstname = $name.Split(" ")[0]
 $lastname = $name.Split(" ")[1]
 $username = (Remove-StringLatinCharacters -String ($firstname.Substring(0,3).ToLower() + $lastname.Substring(0,3).ToLower()))
-$password = [System.Web.Security.Membership]::GeneratePassword(10,0) | ConvertTo-SecureString -AsPlainText -Force
+$password = [System.Web.Security.Membership]::GeneratePassword(10,1) #| ConvertTo-SecureString -AsPlainText -Force
 $email = (Remove-StringLatinCharacters -String "$($name.Replace(" ", ".").ToLower())@$($company)")
 $phonenr = Read-Host -Prompt "Phone number: "
 $location = Get-ADOrganizationalUnit -LDAPFilter "(name=*)" -SearchBase $ou -SearchScope OneLevel -Server $adip -Credential $credentials | Select-Object -Property "Name", "DistinguishedName" | Out-GridView -PassThru
-$counter = 0
 
-# Check if sAMAccountName already exists
+# Check if sAMAccountName already exists. Also removes all non a-z characters then add the counter
 # Note to self, check userprinciplename?
 while ((Get-ADUser -Filter "sAMAccountName -eq '$($username)'" -Server $adip -Credential $credentials)) {
     Write-Output "User already exists"
     $counter += 1
-    $username = "$username$counter"
+    $username = "$($username -replace '[^a-z]')$counter"
 }
 #endregion
 
-#region CREATE USER
+#region ASK IF INFORMATION IS CORRECT, CREATE USER
+<#
+Write-Host `
+            "-SamAccountName: $username `
+            -DisplayName: $name `
+            -UserPrincipalName: "$username@$company" `
+            -GivenName: $firstname `
+            -Surname: $lastname `
+            -AccountPassword: $password `
+            -MobilePhone: $phonenr `
+            -EmailAddress: $email `
+            -Path: $location.DistinguishedName `
+            -ChangePasswordAtLogon: $true"
+#>
+
+
 New-ADUser -Name $name `
      -SamAccountName $username `
      -DisplayName $name `
@@ -60,9 +74,9 @@ New-ADUser -Name $name `
      -ChangePasswordAtLogon $true `
      -Enabled $true `
      -Server $adip `
--Credential $credentials
+     -Credential $credentials
 #endregion
 
 #region output to user
-Write-Host "Your User is created: `n Name: $name `n Email: $email `n Login: $username `n Password: $password"
+Write-Host "`n`n`nYour User is created: `n Name: $name `n Email: $email `n Login: $username `n Password: $password`n`n`n"
 #endregion
