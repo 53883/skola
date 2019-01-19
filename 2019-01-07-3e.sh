@@ -6,7 +6,14 @@ luck=7
 
 number=9876
 
-y=$number%10
-echo $y
+broken=$(( $number % 10 ))
+echo $broken
 
-### fortsätter sen
+number=$(( $number / 10 ))
+echo $number
+
+summa=$(( $summa + $broken ))
+echo $summa
+
+broken=$(( $number % 10 ))
+echo $broken
