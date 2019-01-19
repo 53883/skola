@@ -8,3 +8,5 @@ number=9876
 
 y=$number%10
 echo $y
+
+### fortsätter sen
