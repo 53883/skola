@@ -2,18 +2,23 @@
 
 min=1000
 max=10000
-luck=7
-number=62431
-echo $number
-while [ $number != 0 ]
+min2=$min
+summary=0
+
+while [ "$min" != "$max" ]
 do
-        broken=$(( $number % 10 ))
-        echo "$broken Last digit"
+        while [ "$min" != "0" ]
+        do  
+                broken=$(( $min % 10 ))
+                min=$(( $min / 10 ))
+                summary=$(( $summary + $broken ))
+        done
 
-        number=$(( $number / 10 ))
-        #echo "$number whats left"
-
-        summary=$(( $summary + $broken ))
-        #echo "$summary summan"
+        if [ "$summary" = "7" ] 
+        then    
+                echo "$min2"
+        fi      
+ summary=0
+ min2=$((min2 + 1))
+ min=$min2
 done
-
