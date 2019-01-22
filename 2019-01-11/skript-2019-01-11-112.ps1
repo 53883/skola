@@ -23,7 +23,7 @@ else {
 }   
 
 # 3. A million hours?
-if ($result.TotalSeconds -ge 1000000) {
+if ($result.TotalHours -ge 1000000) {
     write-host "You lived longer then 1mil hours"
     write-host "You've lived for $($result.TotalHours) hours"
 }
