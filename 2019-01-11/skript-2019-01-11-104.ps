@@ -1,0 +1,23 @@
+<# 10.4  Exercise
+1. Open the PowerShell ISE #>
+#ok
+
+# 2. Write a script with a hash of people you know and their birthday.
+$hashtable = @{
+    # Key = Value
+    "Mike"     = "1 april"
+    "Pernilla" = "24 december"
+    "Jennie"   = "3 juni"
+}
+
+# 3. Add a question to ask for a person.
+$ask = read-host -Prompt "Name one friend of yours, and I'll tell you when his/her birthday is"
+
+# 4. Return the birthday for that person.
+# Kolla om personen finns i $hashtable
+if ($hashtable.ContainsKey($ask)) {
+    Write-Host $hashtable.$ask
+}
+else {
+    Write-Host "Thats not your friend, write a name of a friend I said!"
+}
