@@ -18,8 +18,7 @@ foreach ($element in $elements) {
 $elements = Import-Csv C:\elements.csv
 
 # 3. Calculate the average number of protons (tip = Measure-Object -average)
-Measure-Object -InputObject $elements.Protons # JÄVLA SKIT
-$elements.Protons
+($elements.protons | Measure-Object -Average).Average
 
 # 4. Print element symbols were the number of protons equals the number of neutrons.
 foreach ($line in $elements) {
@@ -27,3 +26,5 @@ foreach ($line in $elements) {
     Write-Host $line
   }
 }
+
+# ¯\(°_o)/¯
