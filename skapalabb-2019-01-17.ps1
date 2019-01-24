@@ -11,38 +11,39 @@ Gemensam och resurser ska alla användare ha tillgång till.
 Privat ska skapas som hidden med användarnamn som "Share folder namn".
 IP, nätverk mm skapas utifrån egen diskretion.#>
 
-#region HOST/VM-NAMES #
-$dc01   =   "LAB-DC01"
-$dc02   =   "LAB-DC02"
-$srv01  =   "LAB-SRV01"
-$srv02  =   "LAB-SRV02"
+#region USER INPUT #
+Write-Host "Enter VM admin credentials"
+$credentials = Get-Credential
+#endregion
 
-#---------- make a loop here ---------#
-#---------- make a loop here ---------#
-$vm_name = $dc01
+#region HOST/VM-NAMES #
+$VMS = @("LAB-DC01", "LAB-DC02", "LAB-SRV01", "LAB-SRV02")
 #endregion
 
 #region LOCATIONS #
-$root_path      =   "E:\Hyper-V\VMLAB\"
-$vm_path        =   "$root_path$vm_name"
-$vhd_path       =   "$vm_path`\Virtual Hard Disks\"
-$vhd_file       =   "$vm_name.vhdx"
-$template_vhd   =   "E:\Hyper-V\VMLAB\LAB-TEMPLATE\Virtual Hard Disks\LAB-TEMPLATE.vhdx"
-$vhd_name       =   "$vm_name.vhdx"
+$root_path = "E:\Hyper-V\VMLAB\"
+$template_vhd = "E:\Hyper-V\VMLAB\LAB-TEMPLATE\Virtual Hard Disks\LAB-TEMPLATE.vhdx"
 #endregion
 
 #region VM CONFIG VARIABLES #
-#$vcpu          =   2
-$gen            =   2
-$memory         =   4GB
-$vm_switch      =   "Default Switch"
+$gen = 2
+$memory = 4GB
+$vm_switch = "Lab-Switch"
 #endregion
 
-#region COPY TEMPLATE VHDX and CREATE PATH
-New-Item -ItemType Directory -Force -Path $vhd_path
-Copy-Item "$template_vhd" -Destination "$vhd_path$vhd_name"
-#region CREATE THE VM
-
-#region CREATE VM #
-New-VM -Name $vm_name -Path $root_path -MemoryStartupBytes $memory -VHDPath $vhd_path$vhd_file -Generation 2 -SwitchName $vm_switch
-#endregion
+foreach ($vm in $VMS) {
+    $vm_path = $root_path + $vm
+    $vhd_path = $vm_path + "\Virtual Hard Disks\"
+    $vhd_file = $vm + ".vhdx"
+    #region COPY TEMPLATE VHDX and CREATE PATH
+    New-Item -ItemType Directory -Force -Path $vhd_path
+    Copy-Item "$template_vhd" -Destination "$vhd_path$vhd_file"
+    #endregion
+   
+    New-VM -Name $vm -Path $root_path -MemoryStartupBytes $memory -VHDPath $vhd_path$vhd_file -Generation $gen -SwitchName $vm_switch
+    
+    <# 
+    Invoke-Command -ComputerName $vm -ScriptBlock { 
+        New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress $Using:ip1 -AddressFamily "IPv4" -DefaultGateway $Using:gw -PrefixLength 24 -WhatIf
+    } -credential $credentials #>
+}
