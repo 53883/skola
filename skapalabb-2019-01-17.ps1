@@ -11,39 +11,38 @@ Gemensam och resurser ska alla användare ha tillgång till.
 Privat ska skapas som hidden med användarnamn som "Share folder namn".
 IP, nätverk mm skapas utifrån egen diskretion.#>
 
-#region USER INPUT #
-Write-Host "Enter the Virtual Machine Name"
-$vmname = Read-Host
+#region HOST/VM-NAMES #
+$dc01   =   "LAB-DC01"
+$dc02   =   "LAB-DC02"
+$srv01  =   "LAB-SRV01"
+$srv02  =   "LAB-SRV02"
+
+#---------- make a loop here ---------#
+#---------- make a loop here ---------#
+$vm_name = $dc01
 #endregion
 
 #region LOCATIONS #
-$path           =   "C:\Users\sebastian\Documents\Hyper-V\"
-$vmloc          =   "C:\Users\sebastian\Documents\Hyper-V\$vmname"
-$vhdpath        =   "$vmloc`\Virtual Hard Disks\"
-$vhdfile        =   "$vmname.vhdx"
-$template_vhd   =   "C:\Users\sebastian\Documents\Hyper-V\Templates\Win2016D\Win2016\Virtual Hard Disks\Win2016.vhdx"
-
+$root_path      =   "E:\Hyper-V\VMLAB\"
+$vm_path        =   "$root_path$vm_name"
+$vhd_path       =   "$vm_path`\Virtual Hard Disks\"
+$vhd_file       =   "$vm_name.vhdx"
+$template_vhd   =   "E:\Hyper-V\VMLAB\LAB-TEMPLATE\Virtual Hard Disks\LAB-TEMPLATE.vhdx"
+$vhd_name       =   "$vm_name.vhdx"
 #endregion
 
-#region VM VARIABLES #
-$cpu            =   2
+#region VM CONFIG VARIABLES #
+#$vcpu          =   2
 $gen            =   2
-$memory         =   3GB
-$vhdname        =   "$vmname.vhdx"
-$vmswitch       =   "Default Switch"
-
+$memory         =   4GB
+$vm_switch      =   "Default Switch"
 #endregion
 
 #region COPY TEMPLATE VHDX and CREATE PATH
-New-Item -ItemType Directory -Force -Path $vhdpath
-Copy-Item "$template_vhd" -Destination "$vhdpath$vhdname"
-
+New-Item -ItemType Directory -Force -Path $vhd_path
+Copy-Item "$template_vhd" -Destination "$vhd_path$vhd_name"
 #region CREATE THE VM
-New-VM -Name $vmname -Path $path -MemoryStartupBytes $memory -VHDPath $vhdpath$vhdfile -Generation 2 -SwitchName $vmswitch
-#New-VM -Name $vmname -MemoryGB $memory -Path $vmpath -Generation $gen -Switch $vmswitch
-#Hyper-V\New-VM -VHDPath $vhdpath -BootDevice VHD -Name $vmname -Generation 2 -MemoryStartupBytes $memory -Path $vmloc -SwitchName "Default Switch"
 
+#region CREATE VM #
+New-VM -Name $vm_name -Path $root_path -MemoryStartupBytes $memory -VHDPath $vhd_path$vhd_file -Generation 2 -SwitchName $vm_switch
 #endregion
-
-#New-VM -Name test -Path "C:\Users\sebastian\Documents\Hyper-V\" -MemoryStartupBytes 3GB -VHDPath "C:\Users\sebastian\Documents\Hyper-V\test\Virtual Hard Disks\test.vhdx" -Generation 2 -SwitchName "Default Switch"
-#New-VM -Name $vmname -Path $path -MemoryStartupBytes $memory -VHDPath $vhdpath -Generation 2 -SwitchName $vmswitch
