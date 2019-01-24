@@ -17,7 +17,13 @@ $credentials = Get-Credential
 #endregion
 
 #region HOST/VM-NAMES #
-$VMS = @("LAB-DC01", "LAB-DC02", "LAB-SRV01", "LAB-SRV02")
+#$VMS = @("LAB-DC01", "LAB-DC02", "LAB-SRV01", "LAB-SRV02")
+$VMs = [ordered]@{
+    "LAB-DC01"  = "10.0.0.10"
+    "LAB-DC02"  = "10.0.0.11"
+    "LAB-SRV01" = "10.0.0.12"
+    "LAB-SRV02" = "10.0.0.13"
+}
 #endregion
 
 #region LOCATIONS #
@@ -31,7 +37,7 @@ $memory = 4GB
 $vm_switch = "Lab-Switch"
 #endregion
 
-foreach ($vm in $VMS) {
+foreach ($vm in $VMS.Keys) {
     $vm_path = $root_path + $vm
     $vhd_path = $vm_path + "\Virtual Hard Disks\"
     $vhd_file = $vm + ".vhdx"
@@ -41,9 +47,52 @@ foreach ($vm in $VMS) {
     #endregion
    
     New-VM -Name $vm -Path $root_path -MemoryStartupBytes $memory -VHDPath $vhd_path$vhd_file -Generation $gen -SwitchName $vm_switch
-    
-    <# 
-    Invoke-Command -ComputerName $vm -ScriptBlock { 
-        New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress $Using:ip1 -AddressFamily "IPv4" -DefaultGateway $Using:gw -PrefixLength 24 -WhatIf
-    } -credential $credentials #>
 }
+
+<# foreach ($vm in $VMS.Keys) {
+
+    $ip = $VMS.Item($vm)
+    Invoke-Command -ComputerName $vm -ScriptBlock { 
+        New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress $Using:ip -AddressFamily "IPv4" -DefaultGateway $Using:gw -PrefixLength 24 -WhatIf
+    } -credential $credentials
+} #>
+
+
+<#
+cmd's visual studio code
+
+* formatera kod = shift + alt  f
+* kopiera en rad = Shift + ALT NER
+* multi-line editing = CTRL + ALT UPP/NER. ESC två gånger = CANCEL
+* block comment = markera skit och shift + alt  a
+    samma för att avkommentera
+#>
+
+#region IP ADDRESSES 
+#$ip1 = "10.0.0.10"
+#$ip2 = "10.0.0.11"
+#$ip3 = "10.0.0.12"
+#$ip4 = "10.0.0.13"
+#$gw = "10.0.0.1"
+#$subnet = "255.255.255.0"
+#$dns1 = "10.0.0.1" #temp
+#$dns2 = "172.29.90.11"
+#endregion 
+
+<#
+
+IPAddress         : 172.29.90.150
+InterfaceIndex    : 6
+InterfaceAlias    : Ethernet
+AddressFamily     : IPv4
+Type              : Unicast
+PrefixLength      : 28
+PrefixOrigin      : Dhcp
+SuffixOrigin      : Dhcp
+AddressState      : Preferred
+ValidLifetime     : 23:59:11
+PreferredLifetime : 23:59:11
+SkipAsSource      : False
+PolicyStore       : ActiveStore
+
+#>
