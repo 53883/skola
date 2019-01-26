@@ -13,8 +13,7 @@ fi
 if [ ! -f "$b" ];
 then    
         touch $b
+	mv $b $a/$b
 else
         :
 fi
-
-mv $b $a/$b
