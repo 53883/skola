@@ -1,23 +1,30 @@
-# GÃ¶r en lista med fem olika grÃ¶nsaker.
-$gronsak = @(
-    'Gurka'
-    'Tomat'
-    'Apelsin'
-    'Avokado'
-    'Paprika'
+$path = "C:\temp\"
+$filePath = ($path + "grönsaker.txt")
+
+# Gör en lista med fem olika grönsaker.
+$gronsaker = @(
+    "Gurka"
+    "Tomat"
+    "Avokado"
+    "Paprika"
+    "Apelsin"
 )
 
+if (!(Test-Path $path)) {
+    New-Item $path -Force
+}
+
 # Skapa en fil "C:\temp\gronsaker.txt"
-New-Item -ItemType Directory -Force -Path "C:\temp"
-New-Item -ItemType File -Force -Name "gronsaker.txt" -Path "C:\temp"
+Add-Content -Value $gronsaker -Path $filePath
 
-# Skriv in tvÃ¥ grÃ¶nsaker dubbelt i listan.
-$gronsak += "Gurka", "Tomat"
+# Skriv in två grönsaker dubbelt i listan.
+Add-Content -Value ($("Gurka", "Tomat")) -Path $filePath
 
-# Sortera listan i bokstavsordning och med unikt fÃ¶rekommande grÃ¶nsaker.
-$gronsak | Sort-Object -Unique | Out-File -FilePath C:\temp\gronsaker.txt
+# Sortera listan i bokstavsordning och med unikt förekommande grönsaker.
+Get-Content $filePath | Sort-Object -Unique | Set-Content -Path $filePath
 
-# Presentera de olika grÃ¶nsakerna.
-$gronsak -join ' '
+# Presentera de olika grönsakerna.
+Get-Content -Path $filePath
 
-# Och lÃ¤gg in en slutrad med hur mÃ¥nga unika grÃ¶nsaker listan innehÃ¥ller.
+# Och lägg in en slutrad med hur många unika grönsaker listan innehåller.
+Add-Content -Value $(Get-Content $filePath).Count -Path $filePath
