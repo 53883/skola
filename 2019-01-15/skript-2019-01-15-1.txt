@@ -1,0 +1,41 @@
+# Skapa certet
+$selfsigncert = New-SelfSignedCertificate `
+    -Subject "CN=Sebastians Signade Cert" `
+    -KeyAlgorithm RSA `
+    -KeyLength 2048 `
+    -Type CodeSigningCert `
+    -CertStoreLocation Cert:\LocalMachine\My\
+# Flytta certet till root
+Move-Item "Cert:\LocalMachine\My\$($selfsigncert.Thumbprint)" Cert:\LocalMachine\Root
+
+
+# Kör detta direkt i en PowerShell-prompt med adminbehörigheter
+Set-ExecutionPolicy AllSigned
+
+
+# Så här går det när man kör ett script som inte är signat
+
+<# PS C:\temp> .\signerat_skript.ps1
+.\signerat_skript.ps1 : File C:\temp\signerat_skript.ps1 cannot be loaded.
+The file C:\temp\signerat_skript.ps1 is not digitally signed. You cannot run
+this script on the current system. For more information about running scripts and setting execution policy, see
+about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.
+At line:1 char:1
++ .\signerat_skript.ps1
++ ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess #>
+
+
+# Kör detta direkt i en PowerShell-prompt med adminbehörigheter
+$cert = gci Cert:\LocalMachine\Root\ -CodeSigningCert | Out-GridView -PassThru
+Set-AuthenticodeSignature -Certificate $cert -FilePath "C:\temp\signerat_skript.ps1"
+
+
+# Så här ser det ut när man har signat det
+
+<# Do you want to run software from this untrusted publisher?
+File C:\temp\signerat_skript.ps1 is published by CN=Sebastians Signade Cert and is not
+trusted on your system. Only run scripts from trusted publishers.
+[V] Never run  [D] Do not run  [R] Run once  [A] Always run  [?] Help (default is "D"): A
+Hej hej, jag är ett signerat skript! #>
