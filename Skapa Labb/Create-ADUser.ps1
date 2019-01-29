@@ -45,22 +45,6 @@ while ((Get-ADUser -Filter "sAMAccountName -eq '$($username)'" -Server $adip -Cr
 }
 #endregion
 
-#region ASK IF INFORMATION IS CORRECT, CREATE USER
-<#
-Write-Host `
-            "-SamAccountName: $username `
-            -DisplayName: $name `
-            -UserPrincipalName: "$username@$company" `
-            -GivenName: $firstname `
-            -Surname: $lastname `
-            -AccountPassword: $password `
-            -MobilePhone: $phonenr `
-            -EmailAddress: $email `
-            -Path: $location.DistinguishedName `
-            -ChangePasswordAtLogon: $true"
-#>
-
-
 New-ADUser -Name $name `
      -SamAccountName $username `
      -DisplayName $name `
