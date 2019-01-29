@@ -3,16 +3,16 @@ workflow Create-VMs {
     #region HOST/VM-NAMES/IP #
     $VMs = [ordered]@{
         "LAB-TEST"  = "10.0.0.10"
-        #"LAB-DC02"  = "10.0.0.11"
-        #"LAB-SRV01" = "10.0.0.12"
-        #"LAB-SRV02" = "10.0.0.13"
+        "LAB-DC02"  = "10.0.0.11"
+        "LAB-SRV01" = "10.0.0.12"
+        "LAB-SRV02" = "10.0.0.13"
     }
-    $VMsgw = [ordered]@{
+    <#$VMsgw = [ordered]@{
         "LAB-TEST"  = "10.0.0.10"
-        #"LAB-DC02"  = "10.0.0.11"
-        #"LAB-SRV01" = "10.0.0.12"
-        #"LAB-SRV02" = "10.0.0.13"
-    }
+        "LAB-DC02"  = "10.0.0.11"
+        "LAB-SRV01" = "10.0.0.12"
+        "LAB-SRV02" = "10.0.0.13"
+    }#>
 
     #endregion
 
