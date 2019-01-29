@@ -7,11 +7,23 @@ workflow Create-VMs {
         "LAB-SRV01" = "10.0.0.12"
         "LAB-SRV02" = "10.0.0.13"
     }
+    <#$VMsmask = [ordered]@{
+        "LAB-TEST"  = "255.255.255.0"
+        "LAB-DC02"  = "255.255.255.0"
+        "LAB-SRV01" = "255.255.255.0"
+        "LAB-SRV02" = "255.255.255.0"
+    }#>
     <#$VMsgw = [ordered]@{
-        "LAB-TEST"  = "10.0.0.10"
-        "LAB-DC02"  = "10.0.0.11"
-        "LAB-SRV01" = "10.0.0.12"
-        "LAB-SRV02" = "10.0.0.13"
+        "LAB-TEST"  = "10.0.0.1"
+        "LAB-DC02"  = "10.0.0.1"
+        "LAB-SRV01" = "10.0.0.1"
+        "LAB-SRV02" = "10.0.0.1"
+    }#>
+        <#$VMsdns = [ordered]@{
+        "LAB-TEST"  = "10.0.0.1"
+        "LAB-DC02"  = "10.0.0.10"
+        "LAB-SRV01" = "10.0.0.10"
+        "LAB-SRV02" = "10.0.0.10"
     }#>
 
     #endregion
