@@ -132,6 +132,7 @@ foreach ($Name in $VMS.Keys) {
                 -NoRebootOnCompletion:$false `
                 -SysvolPath "C:\Windows\SYSVOL" `
                 -Force:$true
+                -SafeModeAdministratorPassword $Using:credentials.Password
                 #Install-ADDSForest -SafeModeAdministratorPassword $Using:credentials.Password -DomainName lab.local -InstallDns -CreateDNSDelegation:$false -Force -WarningAction SilentlyContinue
                 #Import-Module ADDSDeployment
             } -Credential $credentials
