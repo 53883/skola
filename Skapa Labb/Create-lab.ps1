@@ -128,7 +128,9 @@ foreach ($Name in $VMS.Keys) {
             Write-Step "Installing AD-Domain-Services and creating forest" ### Installing AD-Domain-Services and creating forest
             Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
                 Install-WindowsFeature -Name "ad-domain-services" -IncludeAllSubFeature -IncludeManagementTools -WarningAction SilentlyContinue
+                Start-Sleep -Seconds 90
                 Import-Module ADDSDeployment
+                Start-Sleep 15
                 Install-ADDSForest `
                 -CreateDnsDelegation:$false `
                 -DatabasePath "C:\Windows\NTDS" `
@@ -140,8 +142,9 @@ foreach ($Name in $VMS.Keys) {
                 -LogPath "C:\Windows\NTDS" `
                 -NoRebootOnCompletion:$false `
                 -SysvolPath "C:\Windows\SYSVOL" `
-                -Force:$true
+                -Force:$true `
                 -SafeModeAdministratorPassword $Using:credentials.Password
+                #-WarningAction SilentlyContinue
                 #Install-ADDSForest -SafeModeAdministratorPassword $Using:credentials.Password -DomainName lab.local -InstallDns -CreateDNSDelegation:$false -Force -WarningAction SilentlyContinue
                 #Import-Module ADDSDeployment
             } -Credential $credentials
@@ -149,7 +152,7 @@ foreach ($Name in $VMS.Keys) {
         }
         "LAB-DC02" {
             Write-Step "Rebooting LAB-DC01" ### Rebooting LAB-DC01
-            Start-Sleep -Seconds 300
+            Start-Sleep -Seconds 400
             Write-Step -Complete
             Write-Step "Waiting for domain" ### Waiting for domain / LAB-DC01 to boot
             while ($online.Name -eq $null) {
@@ -163,7 +166,9 @@ foreach ($Name in $VMS.Keys) {
                 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools -WarningAction SilentlyContinue
                 Add-Computer -DomainName "lab.local" -Server "lab-dc01" -Restart -Force -Credential $Using:domainCredentials
             } -Credential $credentials
+            Write-Host "test start"
             Start-Sleep -Seconds 400
+            Write-Host "test stop"
             Invoke-Command -VMName LAB-DC02 -ScriptBlock { 
                 Install-ADDSDomainController -SafeModeAdministratorPassword $Using:credentials.Password -DomainName "lab.local" -credential $Using:credentials -Restart -Force -WarningAction SilentlyContinue
             } -Credential $credentials
