@@ -24,7 +24,7 @@ $domainAdminAccount = "LAB\Administrator"
 $AdminAccount = "Administrator"
 $AdminPassword = "Linux4Ever"
 $Organization = "Lab"
-$ProductID = "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+$ProductID = "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" # ENTER YOUR PRODUCTKEY HERE
 ### MAKE SURE your Hyper-V global settings are set to E:\Hyper-V\PROD\ do not forget the last "\" (you can change to w/e but do it here also and include the last "\" )
 $Path = Hyper-V\Get-VMHost | Select-Object VirtualMachinePath -ExpandProperty VirtualMachinePath
 $StartupFolder = "E:\Hyper-V\PROD\"
