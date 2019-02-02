@@ -34,12 +34,12 @@ $TemplateLocation = "E:\Hyper-V\PROD\LAB-TEMPLATE.vhdx"
 $UnattendLocation = "E:\Hyper-V\PROD\unattend.xml"
 
 ### STOP EDITING HERE, FOR YOUR PREFERENCES ###
-### AT THIS POINT, YOU CAN NOT EDIT VM-NAMES ###
 
 $credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AdminAccount, ($AdminPassword | ConvertTo-SecureString -AsPlainText -Force)
 $domainCredentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $domainAdminAccount, ($AdminPassword | ConvertTo-SecureString -AsPlainText -Force)
 
 ### START EDIT IP-ADDRESSES ONLY ###
+### AT THIS POINT, YOU CAN NOT EDIT VM-NAMES ###
 
 $VMs = [ordered]@{
     "LAB-DC01"  = "10.0.0.10"
