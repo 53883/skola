@@ -1,3 +1,9 @@
+### START - AREA TO EDIT ###
+
+# not there yet, will fix this
+
+### STOP - AREA TO EDIT ###
+
 function Write-Step {
     param (
         [string]$String,
@@ -26,7 +32,7 @@ $domainAdminAccount = "LAB\Administrator"
 $AdminAccount = "Administrator"
 $AdminPassword = "Linux4Ever"
 $Organization = "Lab"
-$ProductID = "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" # ENTER YOUR PRODUCTKEY HERE
+$ProductID = "WCJYF-GNV9F-F7349-KGPGR-K4T34" # ENTER YOUR PRODUCTKEY HERE
 ### MAKE SURE your Hyper-V global settings are set to E:\Hyper-V\PROD\ do not forget the last "\" (you can change to w/e but do it here also and include the last "\" )
 $Path = Hyper-V\Get-VMHost | Select-Object VirtualMachinePath -ExpandProperty VirtualMachinePath
 $StartupFolder = "E:\Hyper-V\PROD\"
@@ -144,7 +150,7 @@ foreach ($Name in $VMS.Keys) {
                 -SysvolPath "C:\Windows\SYSVOL" `
                 -Force:$true `
                 -SafeModeAdministratorPassword $Using:credentials.Password
-                #-WarningAction SilentlyContinue
+                -WarningAction SilentlyContinue
                 #Install-ADDSForest -SafeModeAdministratorPassword $Using:credentials.Password -DomainName lab.local -InstallDns -CreateDNSDelegation:$false -Force -WarningAction SilentlyContinue
                 #Import-Module ADDSDeployment
             } -Credential $credentials
@@ -187,7 +193,7 @@ foreach ($Name in $VMS.Keys) {
 
 ###  CREATE OU STRUCTURE  ###
 
-Invoke-Command -ComputerName "LAB-DC01" -ScriptBlock {
+Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
     $OUhash = [ordered]@{
         "LAB"       = "DC=lab,DC=local"
         "Users"     = "OU=LAB,DC=lab,DC=local"
@@ -211,7 +217,7 @@ Invoke-Command -ComputerName "LAB-DC01" -ScriptBlock {
 
 ###  CREATE USERS  ###
 
-Invoke-Command -ComputerName "LAB-DC01" -ScriptBlock {
+Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
     Add-Type -AssemblyName System.Web
     $Users = [ordered]@{                ### Userlist *doh*
         "Anders"    =   "Andersson"
@@ -269,36 +275,33 @@ Invoke-Command -ComputerName "LAB-DC01" -ScriptBlock {
 
 ###  CREATE USER SHARES  ###
 
-Invoke-Command -ComputerName "LAB-FILE01" -ScriptBlock {
+Start-Sleep -Seconds 180
+
+Invoke-Command -VMName LAB-FILE01 -ScriptBlock { 
     Write-Step "Creating Share folder" ### Creating Share folder
     New-Item –path "C:\Share\" -type directory -force
     New-SmbShare -Name "Shares$" -Path "C:\Share" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force
     Write-Step -Complete
 } -credential $domainCredentials
 
-Invoke-Command -ComputerName "LAB-DC01" -ScriptBlock {
-    $adusers = $(Get-Aduser -Filter * -Searchbase "ou=test,dc=test,dc=local" | Select-Object -ExpandProperty SamAccountName)
+Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
+    $adusers = $(Get-Aduser -Filter * -Searchbase "ou=users,ou=lab,dc=lab,dc=local" | Select-Object -ExpandProperty SamAccountName)
     $drivemap = "H:"
     ForEach ($user in $adusers) {
-        $fullPath = "\\LAB-FILE01\Shares$\{0}" -f $User
+        $fullPath = "\\LAB-FILE01\Shares$\{0}" -f $user
         echo $fullPath
     
-        if($User -ne $Null) {
-            Set-ADUser $User -HomeDrive $driveLetter -HomeDirectory $fullPath -ea Stop
+        if($user -ne $Null) { # If user exists
+            Set-ADUser $user -HomeDrive $driveLetter -HomeDirectory $fullPath -ea Stop
             $homeShare = New-Item -path $fullPath -ItemType Directory -force -ea Stop
-     
             $acl = Get-Acl $homeShare
-     
             $FileSystemRights = [System.Security.AccessControl.FileSystemRights]"Modify"
             $AccessControlType = [System.Security.AccessControl.AccessControlType]::Allow
             $InheritanceFlags = [System.Security.AccessControl.InheritanceFlags]"ContainerInherit, ObjectInherit"
             $PropagationFlags = [System.Security.AccessControl.PropagationFlags]"InheritOnly"
-     
-            $AccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($User, $FileSystemRights, $InheritanceFlags, $PropagationFlags, $AccessControlType)
+            $AccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($user, $FileSystemRights, $InheritanceFlags, $PropagationFlags, $AccessControlType)
             $acl.AddAccessRule($AccessRule)
-     
             Set-Acl -Path $homeShare -AclObject $acl -ea Stop
-     
             Write-Host ("HomeDirectory created at {0}" -f $fullPath)
         }
     }
