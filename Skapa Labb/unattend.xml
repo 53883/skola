@@ -50,8 +50,8 @@
                         <IpAddress wcm:action="add" wcm:keyValue="1">1DNSServer</IpAddress>
                     </DNSServerSearchOrder>
                     <Identifier>1MACAddressDomain</Identifier>
-                    <EnableAdapterDomainNameRegistration>true</EnableAdapterDomainNameRegistration>
-                    <DisableDynamicUpdate>true</DisableDynamicUpdate>
+                    <EnableAdapterDomainNameRegistration>false</EnableAdapterDomainNameRegistration>
+                    <DisableDynamicUpdate>false</DisableDynamicUpdate>
                     <DNSDomain>1DNSDomain</DNSDomain>
                 </Interface>
             </Interfaces>
