@@ -208,7 +208,7 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
             New-ADOrganizationalUnit -Name "$OU" -Path $OUhash.Item($ou) # -path här är ju tex "OU=LAB,DC=lab,DC=local"
         }
     }
-} -credential $domaincredentials
+} -credential $domaincredentials | Out-Null
 
 
 ###  CREATE USERS  ###
@@ -267,7 +267,7 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
             -Enabled $true `
             -WarningAction SilentlyContinue
     }
-} -credential $domainCredentials
+} -credential $domainCredentials | Out-Null
 
 
 ###  CREATE USER SHARES  ###
@@ -278,7 +278,7 @@ Write-Step "Creating Share folder" ### Creating Share folder
 Invoke-Command -VMName LAB-FILE01 -ScriptBlock { 
     New-Item –path "C:\Share\" -type directory -force -WarningAction SilentlyContinue
     New-SmbShare -Name "Shares$" -Path "C:\Share" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force -WarningAction SilentlyContinue
-} -credential $domainCredentials
+} -credential $domainCredentials | Out-Null
 
 Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
     $adusers = $(Get-Aduser -Filter * -Searchbase "ou=users,ou=lab,dc=lab,dc=local" | Select-Object -ExpandProperty SamAccountName)
@@ -301,7 +301,7 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
             #Write-Host ("HomeDirectory created at {0}" -f $fullPath)
         }
     }
-} -credential $domainCredentials
+} -credential $domainCredentials | Out-Null
 Write-Step -Complete
 
 ###  CREATE SHARED FOLDERS GEMENSAM AND RESURSER  ###
@@ -312,7 +312,7 @@ Invoke-Command -VMName LAB-FILE01 -ScriptBlock {
     New-Item –path "C:\Share\Resurser" -type directory -force
     New-SmbShare -Name "Gemensam" -Path "C:\Share\Gemensam" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force
     New-SmbShare -Name "Resurser" -Path "C:\Share\Resurser" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force
-} -credential $domainCredentials
+} -credential $domainCredentials | Out-Null
 
 Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
     $fullPath = "\\LAB-FILE01\Shares$\Gemensam"
@@ -330,5 +330,5 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
         $AccessRule = Get-Acl $fullPath
         New-Item -path $fullPath2 -ItemType Directory -force -ea Stop
         Set-Acl -Path $fullPath2 $AccessRule
-} -credential $domainCredentials
+} -credential $domainCredentials | Out-Null
 Write-Step -Complete
