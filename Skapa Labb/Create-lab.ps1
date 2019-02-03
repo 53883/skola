@@ -3,7 +3,7 @@
 # not there yet, will fix this
 
 ### STOP - AREA TO EDIT ###
-
+$WarningPreference = "SilentlyContinue"
 function Write-Step {
     param (
         [string]$String,
@@ -149,7 +149,7 @@ foreach ($Name in $VMS.Keys) {
                 -NoRebootOnCompletion:$false `
                 -SysvolPath "C:\Windows\SYSVOL" `
                 -Force:$true `
-                -SafeModeAdministratorPassword $Using:credentials.Password
+                -SafeModeAdministratorPassword $Using:credentials.Password `
                 -WarningAction SilentlyContinue
                 #Install-ADDSForest -SafeModeAdministratorPassword $Using:credentials.Password -DomainName lab.local -InstallDns -CreateDNSDelegation:$false -Force -WarningAction SilentlyContinue
                 #Import-Module ADDSDeployment
@@ -176,8 +176,8 @@ foreach ($Name in $VMS.Keys) {
             Start-Sleep -Seconds 400
             Write-Host "test stop"
             Invoke-Command -VMName LAB-DC02 -ScriptBlock { 
-                Install-ADDSDomainController -SafeModeAdministratorPassword $Using:credentials.Password -DomainName "lab.local" -credential $Using:domainCredentials -Restart -Force -WarningAction SilentlyContinue
-            } -Credential (Get-Credential)
+                Install-ADDSDomainController -SafeModeAdministratorPassword $Using:credentials.Password -DomainName "lab.local" -credential $Using:domainCredentials -Force -WarningAction SilentlyContinue
+            } -Credential $domainCredentials
             Write-Step -Complete
         }
         Default {
@@ -265,6 +265,7 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
             -Path $ou `
             -ChangePasswordAtLogon $true `
             -Enabled $true `
+            -WarningAction SilentlyContinue
     }
 } -credential $domainCredentials
 
@@ -273,11 +274,10 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
 
 Start-Sleep -Seconds 180
 
+Write-Step "Creating Share folder" ### Creating Share folder
 Invoke-Command -VMName LAB-FILE01 -ScriptBlock { 
-    Write-Step "Creating Share folder" ### Creating Share folder
-    New-Item –path "C:\Share\" -type directory -force
-    New-SmbShare -Name "Shares$" -Path "C:\Share" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force
-    Write-Step -Complete
+    New-Item –path "C:\Share\" -type directory -force -WarningAction SilentlyContinue
+    New-SmbShare -Name "Shares$" -Path "C:\Share" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force -WarningAction SilentlyContinue
 } -credential $domainCredentials
 
 Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
@@ -288,7 +288,7 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
         echo $fullPath
     
         if($user -ne $Null) { # If user exists
-            Set-ADUser $user -HomeDrive $driveLetter -HomeDirectory $fullPath -ea Stop
+            Set-ADUser $user -HomeDrive $drivemap -HomeDirectory $fullPath -ea Stop
             $homeShare = New-Item -path $fullPath -ItemType Directory -force -ea Stop
             $acl = Get-Acl $homeShare
             $FileSystemRights = [System.Security.AccessControl.FileSystemRights]"Modify"
@@ -298,14 +298,15 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
             $AccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($user, $FileSystemRights, $InheritanceFlags, $PropagationFlags, $AccessControlType)
             $acl.AddAccessRule($AccessRule)
             Set-Acl -Path $homeShare -AclObject $acl -ea Stop
-            Write-Host ("HomeDirectory created at {0}" -f $fullPath)
+            #Write-Host ("HomeDirectory created at {0}" -f $fullPath)
         }
     }
 } -credential $domainCredentials
-
+Write-Step -Complete
 
 ###  CREATE SHARED FOLDERS GEMENSAM AND RESURSER  ###
 
+Write-Step "Creating Share folders GEMENSAM & RESURSER" ### Creating Common Share folders
 Invoke-Command -VMName LAB-FILE01 -ScriptBlock { 
     New-Item –path "C:\Share\Gemensam" -type directory -force
     New-Item –path "C:\Share\Resurser" -type directory -force
@@ -330,3 +331,4 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
         New-Item -path $fullPath2 -ItemType Directory -force -ea Stop
         Set-Acl -Path $fullPath2 $AccessRule
 } -credential $domainCredentials
+Write-Step -Complete
