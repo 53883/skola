@@ -60,7 +60,7 @@ foreach ($Name in $VMS.Keys) {
     $IPDomain = $VMs.Item($Name)
     $VHDPath = $Path + $Name + "\" + $Name + ".vhdx"
 
-    $VMExists = Get-VM $Name -ErrorAction SilentlyContinue
+    $VMExists = Get-VM $Name
     if ($VMExists) {
         Write-Output "VM $Name already exists"
         continue
@@ -133,7 +133,7 @@ foreach ($Name in $VMS.Keys) {
         "LAB-DC01" {
             Write-Step "Installing AD-Domain-Services and creating forest" ### Installing AD-Domain-Services and creating forest
             Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
-                Install-WindowsFeature -Name "ad-domain-services" -IncludeAllSubFeature -IncludeManagementTools -WarningAction SilentlyContinue
+                Install-WindowsFeature -Name "ad-domain-services" -IncludeAllSubFeature -IncludeManagementTools
                 Start-Sleep -Seconds 90
                 Import-Module ADDSDeployment
                 Start-Sleep 15
@@ -149,10 +149,7 @@ foreach ($Name in $VMS.Keys) {
                 -NoRebootOnCompletion:$false `
                 -SysvolPath "C:\Windows\SYSVOL" `
                 -Force:$true `
-                -SafeModeAdministratorPassword $Using:credentials.Password `
-                -WarningAction SilentlyContinue
-                #Install-ADDSForest -SafeModeAdministratorPassword $Using:credentials.Password -DomainName lab.local -InstallDns -CreateDNSDelegation:$false -Force -WarningAction SilentlyContinue
-                #Import-Module ADDSDeployment
+                -SafeModeAdministratorPassword $Using:credentials.Password
             } -Credential $credentials
             Write-Step -Complete
         }
@@ -163,20 +160,18 @@ foreach ($Name in $VMS.Keys) {
             Write-Step "Waiting for domain" ### Waiting for domain / LAB-DC01 to boot
             while ($online.Name -eq $null) {
                 Start-Sleep -Seconds 60
-                $online = Get-ADDomain "lab.local" -Server "lab-dc01" -Credential $credentials -ErrorAction SilentlyContinue
+                $online = Get-ADDomain "lab.local" -Server "lab-dc01" -Credential $credentials
             }
             Start-Sleep -Seconds 60
             Write-Step -Complete
             Write-Step "Installing AD-Domain-Services, joining domain and promoting to DC" ### Installing AD-Domain-Services, joining domain and promoting to DC
             Invoke-Command -VMName LAB-DC02 -ScriptBlock { 
-                Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools -WarningAction SilentlyContinue
+                Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
                 Add-Computer -DomainName "lab.local" -Server "lab-dc01" -Restart -Force -Credential $Using:domainCredentials
             } -Credential $credentials
-            Write-Host "test start"
             Start-Sleep -Seconds 400
-            Write-Host "test stop"
             Invoke-Command -VMName LAB-DC02 -ScriptBlock { 
-                Install-ADDSDomainController -SafeModeAdministratorPassword $Using:credentials.Password -DomainName "lab.local" -credential $Using:domainCredentials -Force -WarningAction SilentlyContinue
+                Install-ADDSDomainController -SafeModeAdministratorPassword $Using:credentials.Password -DomainName "lab.local" -credential $Using:domainCredentials -Force
             } -Credential $domainCredentials
             Write-Step -Complete
         }
@@ -264,8 +259,7 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
             -EmailAddress $email `
             -Path $ou `
             -ChangePasswordAtLogon $true `
-            -Enabled $true `
-            -WarningAction SilentlyContinue
+            -Enabled $true
     }
 } -credential $domainCredentials | Out-Null
 
@@ -276,8 +270,8 @@ Start-Sleep -Seconds 180
 
 Write-Step "Creating Share folder" ### Creating Share folder
 Invoke-Command -VMName LAB-FILE01 -ScriptBlock { 
-    New-Item –path "C:\Share\" -type directory -force -WarningAction SilentlyContinue
-    New-SmbShare -Name "Shares$" -Path "C:\Share" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force -WarningAction SilentlyContinue
+    New-Item –path "C:\Share\" -type directory -force
+    New-SmbShare -Name "Shares$" -Path "C:\Share" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force
 } -credential $domainCredentials | Out-Null
 
 Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
