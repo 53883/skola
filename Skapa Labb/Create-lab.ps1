@@ -176,8 +176,8 @@ foreach ($Name in $VMS.Keys) {
             Start-Sleep -Seconds 400
             Write-Host "test stop"
             Invoke-Command -VMName LAB-DC02 -ScriptBlock { 
-                Install-ADDSDomainController -SafeModeAdministratorPassword $Using:credentials.Password -DomainName "lab.local" -credential $Using:credentials -Restart -Force -WarningAction SilentlyContinue
-            } -Credential $credentials
+                Install-ADDSDomainController -SafeModeAdministratorPassword $Using:credentials.Password -DomainName "lab.local" -credential $Using:domainCredentials -Restart -Force -WarningAction SilentlyContinue
+            } -Credential (Get-Credential)
             Write-Step -Complete
         }
         Default {
@@ -187,8 +187,6 @@ foreach ($Name in $VMS.Keys) {
         }
     }
 }
-
-
 
 
 ###  CREATE OU STRUCTURE  ###
@@ -211,8 +209,6 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
         }
     }
 } -credential $domaincredentials
-
-
 
 
 ###  CREATE USERS  ###
@@ -305,4 +301,32 @@ Invoke-Command -VMName LAB-DC01 -ScriptBlock {
             Write-Host ("HomeDirectory created at {0}" -f $fullPath)
         }
     }
+} -credential $domainCredentials
+
+
+###  CREATE SHARED FOLDERS GEMENSAM AND RESURSER  ###
+
+Invoke-Command -VMName LAB-FILE01 -ScriptBlock { 
+    New-Item –path "C:\Share\Gemensam" -type directory -force
+    New-Item –path "C:\Share\Resurser" -type directory -force
+    New-SmbShare -Name "Gemensam" -Path "C:\Share\Gemensam" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force
+    New-SmbShare -Name "Resurser" -Path "C:\Share\Resurser" | Grant-SmbShareAccess -AccountName Everyone -AccessRight Full -Force
+} -credential $domainCredentials
+
+Invoke-Command -VMName LAB-DC01 -ScriptBlock { 
+    $fullPath = "\\LAB-FILE01\Shares$\Gemensam"
+    $fullPath2 = "\\LAB-FILE01\Shares$\Resurser"
+    $user = "Users"
+        $shared = New-Item -path $fullPath -ItemType Directory -force -ea Stop
+        $acl = Get-Acl $shared
+        $FileSystemRights = [System.Security.AccessControl.FileSystemRights]"Modify"
+        $AccessControlType = [System.Security.AccessControl.AccessControlType]::Allow
+        $InheritanceFlags = [System.Security.AccessControl.InheritanceFlags]"ContainerInherit, ObjectInherit"
+        $PropagationFlags = [System.Security.AccessControl.PropagationFlags]"InheritOnly"
+        $AccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($user, $FileSystemRights, $InheritanceFlags, $PropagationFlags, $AccessControlType)
+        $acl.AddAccessRule($AccessRule)
+        Set-Acl -Path $shared -AclObject $acl -ea Stop
+        $AccessRule = Get-Acl $fullPath
+        New-Item -path $fullPath2 -ItemType Directory -force -ea Stop
+        Set-Acl -Path $fullPath2 $AccessRule
 } -credential $domainCredentials
