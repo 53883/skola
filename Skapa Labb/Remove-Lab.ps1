@@ -2,7 +2,7 @@
 # Remember to change the path to where your Hyper-V is located
 
 $rootFolder = "E:\Hyper-V\TEST"
-$VMs = "LAB-DC01", "LAB-DC02", "LAB-SRV01", "LAB-SRV02"
+$VMs = "LAB-DC01", "LAB-DC02", "LAB-SRV01", "LAB-FILE01"
 
 foreach ($VM in $VMs) {
     $vmInfo = Get-VM $VM -ErrorAction SilentlyContinue
